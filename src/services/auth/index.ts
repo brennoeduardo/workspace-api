@@ -13,11 +13,11 @@ class AuthService {
 
         try {
 
-            if (!email) throw new Error('Email is required')
-            if (!password) throw new Error('Password is required')
+            if (!email) throw new Error('E-mail é obrigatório')
+            if (!password) throw new Error('Senha é obrigatória')
 
             const user = await UserService.findOne({ where: { email } })
-            if (!user) throw new Error('User not found')
+            if (!user) throw new Error('Usuário não encontrado')
 
             if (!user.confirmed) {
 
@@ -28,9 +28,16 @@ class AuthService {
 
             const decryptPassword = decrypt(user.password)
 
-            if (decryptPassword !== password) throw new Error('Invalid password')
+            if (decryptPassword !== password) throw new Error('Senha incorreta')
 
-            return sign({ id: user.id, email: user.email, confirmed: true }, { expiresIn: '48h' })
+            const userResponse = {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                confirmed: user.confirmed
+            }
+
+            return sign({ id: user.id, email: user.email, confirmed: true, user: userResponse }, { expiresIn: '48h' })
 
         } catch (error) {
             throw error
@@ -42,8 +49,7 @@ class AuthService {
         try {
 
             const user = await UserService.findOne({ where: { email } })
-            if (!user) throw new Error('User not found')
-
+            if (!user) throw new Error('Usuário não encontrado')
 
             if (code === user.confirmation_code) {
                 await UserService.update(Number(user.id), { confirmation_code: null, confirmed: true })

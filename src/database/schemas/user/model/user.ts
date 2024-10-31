@@ -2,7 +2,7 @@ import { UserAttributes } from '../interface'
 import { DataTypes, Model } from 'sequelize'
 
 import { sequelize } from '../../../index'
-
+import { encrypt } from '../../../../utils/crypt';
 class User extends Model<UserAttributes> implements UserAttributes {
     declare id?: number;
     declare name: string;
@@ -34,12 +34,17 @@ User.init({
     confirmed: {
         type: DataTypes.BOOLEAN,
         allowNull: false,
+        defaultValue: false
     },
 }, {
     sequelize,
     timestamps: false,
     tableName: 'tb_user',
     schema: 'users',
+})
+
+User.beforeCreate((user: User) => {
+    user.password = encrypt(user.password)
 })
 
 export { User }

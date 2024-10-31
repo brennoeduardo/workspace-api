@@ -2,11 +2,13 @@ import { initDataBase } from '../src/database/index';
 import router from './api/routes';
 
 import cors from 'cors';
-import express, { Application } from 'express';
+import express, { Application, Request, Response, NextFunction } from 'express';
 import { Server as HTTPServer, createServer } from "http";
+import dotenv from 'dotenv';
 
-import { codeGenerator } from '../src/utils/code-generator';
+dotenv.config();
 
+const SERVER_PORT = Number(process.env.SERVER_PORT)
 class Server {
 
     app: Application;
@@ -21,6 +23,20 @@ class Server {
         this.app.use(cors({ origin: '*' }));
 
         this.app.use('/api', router);
+
+        this.app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+            if (err instanceof Error) {
+                return res.status(400).json({
+                    success: false,
+                    message: err.message,
+                });
+            }
+        
+            res.status(500).json({
+                success: false,
+                message: 'Ocorreu um erro inesperado.',
+            });
+        });
 
     }
 
@@ -38,17 +54,15 @@ class Server {
             await initDataBase().then(() => {
                 console.log("=========================================");
                 console.log('Conectado ao banco de dados com sucesso!');
-                console.log("=========================================");
             })
 
-            this.listen(8000, () => {
-                console.log("=========================================");
+            console.log("=========================================");
+
+            this.listen(SERVER_PORT, () => {
                 console.log('Servidor iniciado na porta 8000');
                 console.log("=========================================");
             });
 
-            codeGenerator()
-            
         } catch (error) {
             console.error('Erro ao iniciar servidor: ', error);
         }
