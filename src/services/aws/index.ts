@@ -1,3 +1,4 @@
+import { UserAttributes } from "../../../src/database/schemas/user/interface";
 import {
     S3Client,
     S3ServiceException,
@@ -7,21 +8,25 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-export const uploadToImageS3 = async (file: File ) => {
-    const accessKeyId = process.env.AWS_ACCESS_KEY_ID;
-    const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
+const accessKeyId = process.env.AWS_ACCESS_KEY_ID;
+const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
+const region = process.env.AWS_REGION;
+const bucketName = process.env.AWS_BUCKET_NAME;
+
+export const uploadToImageS3 = async (file: Express.Multer.File, user: UserAttributes) => {
 
     if (!accessKeyId || !secretAccessKey) throw new Error("Credenciais não configuradas");
 
-    const region = process.env.AWS_REGION;
-    const bucketName = process.env.AWS_BUCKET_NAME;
-    const objectKey = `images-perfil/${file.name}`;   
-    const arrayBuffer = await file.arrayBuffer();
+    file.filename = `${user.id}-${user.name}.png`;
+
+
+    const objectKey = `images-perfil/${file.filename}`;
+    const arrayBuffer = file.buffer;
     const buffer = Buffer.from(arrayBuffer);
 
     const client = new S3Client({
         region,
-        endpoint: `https://${bucketName}.s3.${region}.amazonaws.com`, 
+        endpoint: `https://${bucketName}.s3.${region}.amazonaws.com`,
         forcePathStyle: true,
         credentials: {
             accessKeyId,
@@ -37,7 +42,7 @@ export const uploadToImageS3 = async (file: File ) => {
             Body: buffer,
             ContentType: 'image/png',
             ContentLength: file.size,
-
+            ACL: 'public-read',
         })
 
         const response = await client.send(command);
@@ -51,6 +56,11 @@ export const uploadToImageS3 = async (file: File ) => {
             });
         }
 
+        return {
+            url: `https://${bucketName}.s3.${region}.amazonaws.com/${bucketName}/${objectKey}`,
+            key: objectKey
+        }
+
     } catch (caught) {
         if (caught instanceof S3ServiceException) {
             console.error(`${caught.name}: ${caught.message}`);
@@ -59,3 +69,49 @@ export const uploadToImageS3 = async (file: File ) => {
         }
     }
 };
+
+export const getAvatarFromS3 = async (key: string) => {
+    if (!accessKeyId || !secretAccessKey) throw new Error("Credenciais não configuradas");
+
+    const client = new S3Client({
+        region,
+        endpoint: `https://${bucketName}.s3.${region}.amazonaws.com`,
+        forcePathStyle: true,
+        credentials: {
+            accessKeyId,
+            secretAccessKey,
+        }
+    });
+
+    try {
+
+        const command = new PutObjectCommand({
+            Bucket: bucketName,
+            Key: key,
+        })
+
+        const response = await client.send(command);
+
+        if (response.$metadata.httpStatusCode !== 200) {
+            throw new S3ServiceException({
+                message: "Erro ao fazer upload do arquivo",
+                $fault: "client",
+                $metadata: response.$metadata,
+                name: "S3ServiceException",
+            });
+        }
+
+        return {
+            url: `https://${bucketName}.s3.${region}.amazonaws.com/${key}`,
+            key
+        }
+
+    } catch (caught) {
+        if (caught instanceof S3ServiceException) {
+            console.error(`${caught.name}: ${caught.message}`);
+        } else {
+            throw caught;
+        }
+    }
+}
+

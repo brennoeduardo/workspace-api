@@ -4,6 +4,7 @@ import { User } from "../../../../database/schemas/user/model";
 import { codeGenerator } from "../../../../utils/code-generator";
 
 import Mailer from '../../../../services/mail'
+import { uploadToImageS3 } from "../../../../services/aws";
 
 class UserService {
 
@@ -46,6 +47,21 @@ class UserService {
         const options = { where: { id } };
         return await User.destroy(options);
     }
+
+    async updateAvatar(id: number, file: Express.Multer.File) {
+
+        const user = await this.findById(id);
+        if (!user) throw new Error('Usuário não encontrado!');
+
+        const fileUrl = await uploadToImageS3(file, user);
+
+        if(!fileUrl) throw new Error('Erro ao fazer upload da imagem!');
+
+        await this.update(id, { avatar: fileUrl.url });
+
+        return fileUrl.url;
+    }
+
 
 }
 

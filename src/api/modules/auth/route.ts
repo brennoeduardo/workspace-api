@@ -9,7 +9,7 @@ router.route('/')
     .post(authController.login)
 
 router.route('/logout')
-    .post(authController.logout)
+    .get(authController.logout)
 
 interface AuthenticatedRequest extends Request {
     user?: any;

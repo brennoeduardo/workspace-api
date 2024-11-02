@@ -30,11 +30,11 @@ class Server {
 
         this.app.use('/api', router);
 
-        this.app.use((err: any, req: Request, res: Response, next: NextFunction) => {
-            if (err instanceof Error) {
+        this.app.use((error: Error, req: Request, res: Response, next: NextFunction) => {
+            if (error) {
                 return res.status(400).json({
                     success: false,
-                    message: err.message,
+                    message: error.message,
                 });
             }
         

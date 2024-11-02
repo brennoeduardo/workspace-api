@@ -10,6 +10,7 @@ class User extends Model<UserAttributes> implements UserAttributes {
     declare password: string;
     declare confirmation_code?: string | null;
     declare confirmed: boolean;
+    declare avatar?: string;
 }
 
 User.init({
@@ -36,6 +37,10 @@ User.init({
         allowNull: false,
         defaultValue: false
     },
+    avatar: {
+        type: DataTypes.STRING,
+        allowNull: true
+    }
 }, {
     sequelize,
     timestamps: false,

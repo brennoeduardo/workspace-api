@@ -1,3 +1,4 @@
+import { uploadToImageS3 } from "../../../../services/aws";
 import { UserService } from "../services";
 import { Request, Response, NextFunction } from "express";
 
@@ -47,6 +48,42 @@ class UserController {
 
         } catch (error) {
             next(error);
+        }
+    }
+
+    async updateAvatar(req: Request, res: Response, next: NextFunction) {
+        try {
+
+            const { id } = req.params;
+            
+            const file = req.file; 
+
+            if(!id) throw new Error('Id não encontrado!');
+            if (!file) throw new Error('Imagem não encontrada!');
+
+            const url = await UserService.updateAvatar(Number(id), file);
+
+            res.status(200).json({ url, success: true, message: 'Avatar atualizado com sucesso!' });
+
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async getAvatar(req: Request, res: Response, next: NextFunction) {
+        try {
+            
+            const { id } = req.params;
+
+            const user = await UserService.findById(Number(id));
+
+            if (!user) throw new Error('Usuario não encontrado!');
+
+            res.status(200).json({ data: user.avatar, success: true, message: 'Avatar retornado com sucesso!' });
+
+
+        } catch (error) {
+            next(error);       
         }
     }
 

@@ -6,6 +6,7 @@ export interface UserAttributes extends Entity {
     password: string;
     confirmation_code?: string | null;
     confirmed: boolean;
+    avatar?: string;
 }
 
 export interface UserUpdateAttributes extends Entity {
@@ -14,4 +15,5 @@ export interface UserUpdateAttributes extends Entity {
     password?: string;
     confirmation_code?: string | null;
     confirmed?: boolean;
+    avatar?: string;
 }
