@@ -10,37 +10,30 @@ import Mailer from '../mail'
 class AuthService {
 
     public async login(email: string, password: string) {
-
         try {
+            if (!email) throw new Error('E-mail é obrigatório');
+            if (!password) throw new Error('Senha é obrigatória');
 
-            if (!email) throw new Error('E-mail é obrigatório')
-            if (!password) throw new Error('Senha é obrigatória')
-
-            const user = await UserService.findOne({ where: { email } })
-            if (!user) throw new Error('Usuário não encontrado')
+            const user = await UserService.findOne({ where: { email } });
+            if (!user) throw new Error('Usuário não encontrado');
 
             if (!user.confirmed) {
-
-                await this.sendEmailAgain(Number(user.id))
-
-                return { message: 'Usuário não confirmado', success: false, confirmed: false }
+                await this.sendEmailAgain(Number(user.id));
+                return { message: 'Usuário não confirmado', success: false, confirmed: false };
             }
 
-            const decryptPassword = decrypt(user.password)
+            const decryptPassword = decrypt(user.password);
+            if (decryptPassword !== password) throw new Error('Senha incorreta');
 
-            if (decryptPassword !== password) throw new Error('Senha incorreta')
-
-            const userResponse = {
+            const payload = {
                 id: user.id,
-                name: user.name,
                 email: user.email,
-                confirmed: user.confirmed
-            }
+                confirmed: true
+            };
 
-            return sign({ id: user.id, email: user.email, confirmed: true, user: userResponse }, { expiresIn: '48h' })
-
+            return sign(payload, { expiresIn: '48h' });
         } catch (error) {
-            throw error
+            throw error;
         }
     }
 

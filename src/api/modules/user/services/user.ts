@@ -21,8 +21,6 @@ class UserService {
 
     async create(payload: UserAttributes) {
 
-        console.log(payload)
-
         const user = await User.create(payload);
 
         const confirmation_code = codeGenerator()

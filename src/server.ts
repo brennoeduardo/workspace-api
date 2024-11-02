@@ -6,6 +6,8 @@ import express, { Application, Request, Response, NextFunction } from 'express';
 import { Server as HTTPServer, createServer } from "http";
 import dotenv from 'dotenv';
 
+import cookkieParser from 'cookie-parser';
+
 dotenv.config();
 
 const SERVER_PORT = Number(process.env.SERVER_PORT)
@@ -20,7 +22,11 @@ class Server {
 
         this.app.use(express.json());
         this.app.use(express.urlencoded({ extended: true }));
-        this.app.use(cors({ origin: '*' }));
+        this.app.use(cors({ 
+            origin: process.env.CLIENT_URL,
+            credentials: true,
+        }));
+        this.app.use(cookkieParser());
 
         this.app.use('/api', router);
 
