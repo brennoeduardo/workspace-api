@@ -1,17 +1,14 @@
 import { UserAttributes } from "../../../src/database/schemas/user/interface";
-import {
-    S3Client,
-    S3ServiceException,
-    PutObjectCommand
-} from "@aws-sdk/client-s3";
+import { S3Client, S3ServiceException, PutObjectCommand } from "@aws-sdk/client-s3";
+
 import dotenv from 'dotenv';
 
 dotenv.config();
 
-const accessKeyId = process.env.AWS_ACCESS_KEY_ID;
-const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
 const region = process.env.AWS_REGION;
 const bucketName = process.env.AWS_BUCKET_NAME;
+const accessKeyId = process.env.AWS_ACCESS_KEY_ID;
+const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
 
 export const uploadToImageS3 = async (file: Express.Multer.File, user: UserAttributes) => {
 
@@ -70,7 +67,7 @@ export const uploadToImageS3 = async (file: Express.Multer.File, user: UserAttri
     }
 };
 
-export const getAvatarFromS3 = async (key: string) => {
+export const getAvatarFromS3 = async (Key: string) => {
     if (!accessKeyId || !secretAccessKey) throw new Error("Credenciais não configuradas");
 
     const client = new S3Client({
@@ -85,10 +82,7 @@ export const getAvatarFromS3 = async (key: string) => {
 
     try {
 
-        const command = new PutObjectCommand({
-            Bucket: bucketName,
-            Key: key,
-        })
+        const command = new PutObjectCommand({ Bucket: bucketName, Key })
 
         const response = await client.send(command);
 
@@ -102,16 +96,13 @@ export const getAvatarFromS3 = async (key: string) => {
         }
 
         return {
-            url: `https://${bucketName}.s3.${region}.amazonaws.com/${key}`,
-            key
+            url: `https://${bucketName}.s3.${region}.amazonaws.com/${Key}`,
+            Key
         }
 
     } catch (caught) {
-        if (caught instanceof S3ServiceException) {
-            console.error(`${caught.name}: ${caught.message}`);
-        } else {
-            throw caught;
-        }
+        if (caught instanceof S3ServiceException) console.error(`${caught.name}: ${caught.message}`);
+        else throw caught;
     }
 }
 

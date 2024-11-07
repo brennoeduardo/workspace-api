@@ -15,11 +15,12 @@ export const authToken = (req: AuthenticatedRequest, res: Response, next: NextFu
     if (!token) return res.status(401).json({ message: 'Acesso negado' });
 
     try {
+
         const secret = process.env.JWT_SECRET;
         if (!secret) return res.status(500).json({ message: 'JWT Secret not configured' });
 
         const verified = jwt.verify(token, secret) as UserAttributes;
-        
+
         req.user = verified;
 
         next();

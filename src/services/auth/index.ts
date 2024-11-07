@@ -11,27 +11,31 @@ class AuthService {
 
     public async login(email: string, password: string) {
         try {
+
             if (!email) throw new Error('E-mail é obrigatório');
             if (!password) throw new Error('Senha é obrigatória');
 
-            const user = await UserService.findOne({ where: { email } });
-            if (!user) throw new Error('Usuário não encontrado');
+            const findUser = await UserService.findOne({ where: { email } });
+            if (!findUser) throw new Error('Usuário não encontrado');
 
-            if (!user.confirmed) {
-                await this.sendEmailAgain(Number(user.id));
+            if (!findUser.confirmed) {
+                await this.sendEmailAgain(Number(findUser.id));
                 return { message: 'Usuário não confirmado', success: false, confirmed: false };
             }
 
-            const decryptPassword = decrypt(user.password);
+            const decryptPassword = decrypt(findUser.password);
             if (decryptPassword !== password) throw new Error('Senha incorreta');
 
-            const payload = {
-                id: user.id,
-                email: user.email,
+            const authenticatedUser = {
+                id: findUser.id,
+                name: findUser.name,
+                email: findUser.email,
+                avatar: findUser.avatar,
                 confirmed: true
             };
 
-            return sign(payload, { expiresIn: '48h' });
+            return sign(authenticatedUser, { expiresIn: '48h' });
+            
         } catch (error) {
             throw error;
         }

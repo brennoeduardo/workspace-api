@@ -1,7 +1,9 @@
 import { Router, Request } from 'express'
 
 import authController from './controller'
+
 import { authToken } from '../../middleware/auth'
+import { UserAttributes } from '../../../database/schemas/user/interface'
 
 const router = Router()
 
@@ -12,7 +14,7 @@ router.route('/logout')
     .get(authController.logout)
 
 interface AuthenticatedRequest extends Request {
-    user?: any;
+    user?: UserAttributes;
 }
 
 router.get('/check', authToken, (req: AuthenticatedRequest, res) => {

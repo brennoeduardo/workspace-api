@@ -9,15 +9,21 @@ import { uploadToImageS3 } from "../../../../services/aws";
 class UserService {
 
     async find(options?: FindOptions<UserAttributes>) {
-        return await User.findAll(options);
+        return await User.findAll({
+            ...options,
+            attributes: { exclude: ['password'] }
+        });
     }
 
     async findOne(options: FindOptions<UserAttributes>) {
-        return await User.findOne(options);
+        return await User.findOne({
+            ...options,
+            attributes: { exclude: ['password'] }
+        });
     }
 
     async findById(id: number) {
-        return await User.findByPk(id);
+        return await User.findByPk();
     }
 
     async create(payload: UserAttributes) {
